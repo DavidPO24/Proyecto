@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>FutbolLiga</title>
+	<link rel="stylesheet" type="text/css" th:href="@{/css/estilo.css}">
+	<link rel="shortcut icon" th:href="@{/img/imagenLogo.png}">
+</head>
+<body>
+    <form th:action="@{/perfil/cambiar}" th:object="${jugador}" method="post">
+    <table border="0" width="35%" cellpadding="8" class="cuadrado">
+    <thead>
+    	<thead>
+			<tr>
+				<th colspan="2">Perfil del Jugador</th>
+			</tr>
+    </thead>
+    <tbody>
+        <!-- Nombre del Jugador -->
+        <tr>
+            <td><label for="nombreJugador">Nombre del Jugador:</label></td>
+            <td><input type="text" id="nombreJugador" th:field="*{nombreJugador}" /><td>
+        </tr>
+        <!-- Dorsal -->
+        <tr>
+            <td><label for="dorsal">Dorsal:</label></td>
+            <td><input type="number" id="dorsal" th:field="*{Dorsal}" /></td>
+        </tr>
+        <!-- Nombre de Usuario (No Editable) -->
+        <tr>
+           <td> <label>Nombre de Usuario:</label></td>
+            <td><span th:text="*{usuario.nombre}">Nombre de Usuario</span></td>
+        </tr>
+        <!-- Equipo (No Editable) -->
+        <tr>
+           <td> <label>Equipo:</label></td>
+            <td><span th:text="*{equipo.nombreEquipo}">Equipo</span></td>
+        </tr>
+        <!-- Goles (No Editable) -->
+        <tr>
+            <td><label>Goles:</label></td>
+            <!-- <span th:text="${jugador.goles}">Goles</span> -->
+        </tr>
+        <!-- Tarjetas Amarillas (No Editable) -->
+        <tr>
+            <td><label>Tarjetas Amarillas:</label></td>
+            <!-- <span th:text="${jugador.tarjetasAmarillas}">Tarjetas Amarillas</span> -->
+        </tr>
+        <!-- Tarjetas Rojas (No Editable) -->
+        <tr>
+           <td> <label>Tarjetas Rojas:</label></td>
+            <!-- <span th:text="${jugador.tarjetasRojas}">Tarjetas Rojas</span> -->
+        </tr>
+        <!-- Botón para enviar el formulario -->
+        <tr>
+           <td colspan=2> <button type="submit" class="boton">Guardar Cambios</button></td>
+        </tr>
+    </tbody>
+    </table>
+    </form>
+</body>
+</html>
+

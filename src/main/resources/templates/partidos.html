@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>FutbolLiga</title>
+	<link rel="stylesheet" type="text/css" th:href="@{/css/estilo.css}">
+	<link rel="shortcut icon" th:href="@{/img/imagenLogo.png}"> 
+</head>
+<body>
+    <table border = 4 class="cuadradoGrande">
+        <thead>
+        <tr>
+        	<th colspan = 5> Partidos </th>
+        </tr>
+            <tr>
+                <th>Equipo Local</th>
+                <th>Equipo Visitante</th>
+                <th>Fecha</th>
+                <th>Estadio</th>
+                <th>Acci&oacute;n</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="partido : ${partidos}">
+                <td th:text="${partido.equipoLocal.nombreEquipo}">Equipo Local</td>
+                <td th:text="${partido.equipoVisitante.nombreEquipo}">Equipo Visitante</td>
+                <td th:text="${#dates.format(partido.fechaPartido, 'dd/MM/yyyy HH:mm')}">Fecha</td>
+                <td th:text="${partido.estadio}">Estadio</td>
+                <td>
+                    <form th:action="@{/partidos/acta}" method="post">
+                        <input type="hidden" name="idPartido" th:value="${partido.idpartido}" />
+                        <button type="submit" class="boton" th:text="${partido.tieneDatos ? 'Ver Acta' : 'Generar Acta'}"></button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

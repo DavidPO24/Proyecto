@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Acta del Partido</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/estilo.css}">
+    <link rel="shortcut icon" th:href="@{/img/imagenLogo.png}">
+</head>
+<body>
+    <div class="cuadrado">
+    	<h1>Acta del Partido</h1>
+        <p><strong>Equipo Local:</strong> <span th:text="${partido.equipoLocal.nombreEquipo}"></span></p>
+        <p><strong>Equipo Visitante:</strong> <span th:text="${partido.equipoVisitante.nombreEquipo}"></span></p>
+        <p><strong>Fecha:</strong> <span th:text="${#dates.format(partido.fechaPartido, 'dd/MM/yyyy HH:mm')}"></span></p>
+    </div>
+    
+    <table class="cuadrado">
+        <thead>
+        	<tr>
+        		<th colspan=4>Eventos del Partido</th>
+        	</tr>
+            <tr>
+                <th>Jugador</th>
+                <th>Equipo</th>
+                <th>Evento</th>
+                <th>Minuto del Partido</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="evento : ${eventos}">
+                <td th:text="${evento.jugador.nombreJugador}"></td>
+                <td th:text="${evento.jugador.equipo.nombreEquipo}"></td>
+                <td th:text="${evento.tipoevento.nombreEvento}"></td>
+                <td th:text="${evento.momentoEvento}"></td>
+            </tr>
+            <tr>
+            	<td colspan=4> <a href="/partidos">Volver a la lista de partidos</a> </td>
+            </tr>
+        </tbody>
+    </table>
+    
+</body>
+</html>

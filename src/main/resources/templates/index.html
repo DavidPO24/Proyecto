@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http:// www.thymeleaf.org">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>FutbolLiga</title>
+	<link rel="stylesheet" type="text/css" th:href="@{/css/estilo.css}">
+	<link rel="shortcut icon" th:href="@{/img/imagenLogo.png}"> 
+</head>
+
+<body>
+	<div class="logo">
+		<img class="foto" th:src="@{/img/imagenLogo.png}" />
+	</div>
+	<div>
+		<form method="post" th:action="@{/sesion}">
+			<table width="35%" cellpadding="8" class="cuadrado">
+				<thead>
+					<tr>
+						<th colspan="2">
+							<h1 style="color: black">
+								<b>Iniciar Sesi&oacute;n</b>
+							</h1>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>Usuario:</td>
+						<td><input type="text" name="usuario" id ="usuario" required/></td>
+					</tr>
+					<tr>
+						<td>Contraseña:</td>
+						<td><input type="password" name="pwd" id="pwd" required/></td>
+					</tr>
+					<tr>
+						<td colspan="2"><input class="boton" type="submit"
+							value="Iniciar Sesión" /></td>
+					</tr>
+					<tr>
+						<td colspan="2">¿No tienes cuenta?: <a href="/registro">Reg&iacute;strate
+								aqu&iacute;</a></td>
+					</tr>
+				</tbody>
+			</table>
+		</form>
+	</div>
+</body>
+</html>

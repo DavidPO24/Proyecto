@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>FutbolLiga</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/estilo.css}">
+    <link rel="shortcut icon" th:href="@{/img/imagenLogo.png}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script th:inline="javascript">
+        var equipos = /*[[${equipos}]]*/ [];
+        var tiposEvento = /*[[${tiposEvento}]]*/ [];
+        var eventos = [];
+
+        function addEventToList() {
+            const team = document.getElementById('equipoSelect');
+            const equipoId = team.value;
+            const equipoNombre = team.options[team.selectedIndex].text;
+            const tipoE = document.getElementById('tipoEventoSelect');
+            const tipoEventoId = tipoE.value;
+            const momentoEvento = document.getElementById('momentoEvento').value;
+            var jugadorId = document.getElementById('jugadorLocal');
+            const tipoEventoDescripcion = tipoE.options[tipoE.selectedIndex].text;
+
+            if (equipoId !== equipoLocalId.value) {
+                jugadorId = document.getElementById('jugadorVisitante');
+            }
+
+            const jugador = {
+                idjugador: jugadorId.value,
+                nombre: jugadorId.options[jugadorId.selectedIndex].text
+            };
+
+            eventos.push({
+                idJugador: jugador.idjugador,
+                idtipoEvento: tipoEventoId,
+                momentoEvento: momentoEvento
+            });
+
+            const table = document.getElementById('eventListTable').getElementsByTagName('tbody')[0];
+            const row = table.insertRow();
+
+            const cell2 = row.insertCell(0);
+            cell2.textContent = jugador.nombre;
+
+            const cell3 = row.insertCell(1);
+            cell3.textContent = tipoEventoDescripcion;
+
+            const cell4 = row.insertCell(2);
+            cell4.textContent = momentoEvento;
+
+            // Limpiar los campos después de añadir
+            document.getElementById('equipoSelect').value = '';
+            document.getElementById('jugadorLocal').value = '';
+            document.getElementById('jugadorVisitante').value = '';
+            document.getElementById('tipoEventoSelect').value = '';
+            document.getElementById('momentoEvento').value = '';
+
+            document.getElementById("entregar").classList.remove("oculto");
+            document.getElementById("entregar").classList.add("boton");
+        }
+
+        function loadPlayers() {
+            var equipoSelect = document.getElementById("equipoSelect").value;
+            var equipoLocal = document.getElementById("equipoLocalId").value;
+
+            document.getElementById("jugadorLocal").classList.add("oculto");
+            document.getElementById("jugadorVisitante").classList.add("oculto");
+
+            if (equipoSelect === equipoLocalId.value) {
+                document.getElementById("jugadorLocal").classList.remove("oculto");
+            } else {
+                document.getElementById("jugadorVisitante").classList.remove("oculto");
+            }
+        }
+
+        function submitForm() {
+            const form = document.getElementById('actaForm');
+            const partidoId = form.partidoId.value;
+
+            const table = document.getElementById('eventListTable').getElementsByTagName('tbody')[0];
+            const rows = table.rows;
+            //const eventos = [];
+            /*for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].cells;
+                const jugador = jugadorId.value;
+                const tipoEvento = cells[1].textContent;
+                const momentoEvento = cells[2].textContent;
+
+                eventos.push({
+                    idJugador: jugador,
+                    idtipoEvento: tipoEvento,
+                    momentoEvento: momentoEvento
+                });
+            }*/
+
+            const data = {
+                partidoId: partidoId,
+                eventos: eventos
+            };
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/partidos/acta/guardar', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    console.log('Solicitud completada con éxito');
+                    window.location.href = '/partidos';
+                }
+            };
+            xhr.send(JSON.stringify(data));
+        }
+    </script>
+</head>
+<body>
+    <h1>Acta del Partido</h1>
+    <form id="actaForm" th:action="@{/partidos/acta/guardar}" method="post" class="cuadrado">
+        <input type="hidden" id="partidoId" name="partidoId" th:value="${partido.idpartido}" />
+        <input type="hidden" id="equipoLocalId" name="equipoLocalId" th:value="${partido.equipoLocal.idEquipo}" />
+        <div>
+            <label for="equipoSelect">Equipo:</label>
+            <select id="equipoSelect" name="equipo" onchange="loadPlayers()">
+                <option value="">Selecciona un equipo</option>
+                <option th:each="equipo : ${equipos}"
+                    th:value="${equipo.idEquipo}" th:text="${equipo.nombreEquipo}">
+                </option>
+            </select>
+        </div>
+        <div>
+            <label for="jugadorLocal">Jugador:</label>
+            <select id="jugadorLocal" name="jugadorL" class="oculto">
+            <option value="">Selecciona un jugador</option>
+               <option th:each="jugador : ${jL}"
+                    th:value="${jugador.idjugador}" th:text="${jugador.nombreJugador}">
+                </option>
+            </select>
+            <select id="jugadorVisitante" name="jugadorV" class="oculto">
+            <option value="">Selecciona un jugador</option>
+                <option th:each="jugador : ${jV}"
+                    th:value="${jugador.idjugador}" th:text="${jugador.nombreJugador}">
+                </option>
+            </select>
+        </div>
+        
+        <div>
+            <label for="tipoEventoSelect">Tipo de Evento:</label>
+            <select id="tipoEventoSelect" name="tipoEvento">
+                <option value="">Selecciona un evento</option>
+                <option th:each="tipoEvento : ${tiposEvento}"
+                    th:value="${tipoEvento.idtipoEvento}" th:text="${tipoEvento.nombreEvento}">
+                </option>
+            </select>
+        </div>
+        
+        <div>
+            <label for="momentoEvento">Momento del Evento:</label>
+            <input type="number" id="momentoEvento" name="momentoEvento" min="1" max="90">
+        </div>
+        
+        <button type="button" onclick="addEventToList()" class="boton">Añadir Evento</button>
+        <button id="entregar" type="button" onclick="submitForm()" class="oculto">Guardar Acta</button>
+        
+        <h2>Eventos Añadidos</h2>
+        <table id="eventListTable">
+            <thead>
+                <tr>
+                    <th>Jugador</th>
+                    <th>Tipo de Evento</th>
+                    <th>Momento del Evento</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Eventos añadidos se mostrarán aquí -->
+            </tbody>
+        </table>
+    </form>
+</body>
+</html>
