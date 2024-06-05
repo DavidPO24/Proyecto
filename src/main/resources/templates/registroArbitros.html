@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http:// www.thymeleaf.org">
+	<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>FutbolLiga</title>
+	<link rel="stylesheet" type="text/css" th:href="@{/css/estilo.css}">
+	<link rel="shortcut icon" th:href="@{/img/imagenLogo.png}"> 
+</head>
+<body class ="barra">
+	<div class="barraLateral">
+		<div class="logoBarra">
+			<img class="fotoBarra" th:src="@{/img/imagenLogo.png}" />
+		</div>
+        <ul>
+            <li th:if="${usuario.tipousuario.nombreTipoUsuario == 'admin'}"><a th:href="@{/admin/equipo}">Crear Equipo</a></li>
+            <li th:if="${usuario.tipousuario.nombreTipoUsuario == 'admin'}"><a th:href="@{/admin/partido}">Crear Partidos</a></li>
+            <li th:if="${usuario.tipousuario.nombreTipoUsuario == 'admin'}"><a th:href="@{/admin/arbitro}">Crear &Aacute;rbitro</a></li>
+            <li th:if="${usuario.tipousuario.nombreTipoUsuario == 'jugador'}"><a th:href="@{/sesion}">Perfil</a></li>
+            <li th:if="${usuario.tipousuario.nombreTipoUsuario != 'admin' and usuario.tipousuario.nombreTipoUsuario != 'arbitro'}">
+            <a th:href="@{/equipo}">Equipo</a></li>
+            <li><a th:href="@{/partidos}">Lista de Partidos</a></li>
+            <li><a th:href="@{/clasificacion}">Clasificaci&oacute;n</a></li>
+            <li><a th:href="@{/logout}">Cerrar Sesi&oacute;n</a></li>
+        </ul>
+    </div>
+    <div class="contenido">
+	<form method="post" th:action="@{/crear/arbitro}">
+		<table border="1" width="25%" cellpadding="8" class="cuadradoBarra">
+			<thead>
+				<tr>
+					<th colspan="2">Introduzca datos para el &Aacute;rbitro</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>Nombre de usuario</td>
+					<td><input type="text" name="usuario" value="" /></td>
+				</tr>
+				<tr>
+					<td>Contraseña</td>
+					<td><input type="password" name="pwd" value="" /></td>
+				</tr>
+				
+				<tr>
+					<td colspan="2"><input type="submit" value="Crear Cuenta"
+						class="boton" /></td>
+				</tr>
+			</tbody>
+		</table>
+	</form>
+	</div>
+</body>
+</html>

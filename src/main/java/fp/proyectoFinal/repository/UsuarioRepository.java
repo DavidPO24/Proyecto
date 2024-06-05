@@ -10,4 +10,5 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer>{
 	
 	@Query("SELECT u FROM Usuario u WHERE u.nombre = ?1 AND u.password = ?2")
 	Usuario iniciarSesion(String nombre, String pwd);
+
 }

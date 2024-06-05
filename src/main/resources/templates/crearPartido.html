@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>FutbolLiga</title>
+<link rel="stylesheet" type="text/css" th:href="@{/css/estilo.css}">
+<link rel="shortcut icon" th:href="@{/img/imagenLogo.png}">
+</head>
+<body class="barra">
+<div class="barraLateral">
+		<div class="logoBarra">
+			<img class="fotoBarra" th:src="@{/img/imagenLogo.png}" />
+		</div>
+        <ul>
+            <li th:if="${usuario.tipousuario.nombreTipoUsuario == 'admin'}"><a th:href="@{/admin/equipo}">Crear Equipo</a></li>
+            <li th:if="${usuario.tipousuario.nombreTipoUsuario == 'admin'}"><a th:href="@{/admin/partido}">Crear Partidos</a></li>
+            <li th:if="${usuario.tipousuario.nombreTipoUsuario == 'admin'}"><a th:href="@{/admin/arbitro}">Crear &Aacute;rbitro</a></li>
+            <li th:if="${usuario.tipousuario.nombreTipoUsuario == 'jugador'}"><a th:href="@{/sesion}">Perfil</a></li>
+            <li th:if="${usuario.tipousuario.nombreTipoUsuario != 'admin' and usuario.tipousuario.nombreTipoUsuario != 'arbitro'}">
+            <a th:href="@{/equipo}">Equipo</a></li>
+            <li><a th:href="@{/partidos}">Lista de Partidos</a></li>
+            <li><a th:href="@{/clasificacion}">Clasificaci&oacute;n</a></li>
+            <li><a th:href="@{/logout}">Cerrar Sesi&oacute;n</a></li>
+        </ul>
+    </div>
+    <div class="contenido">
+	<form th:action="@{/crear/partido}" method="post">
+		<table border=1 class="cuadradoBarra">
+			<thead>
+				<tr>
+					<th colspan="2">Crear Partido</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>Equipo Local:</td>
+					<td><select id="equipoLocal" name="equipoLocal" class="select"
+						required>
+							<option value="">Selecciona un equipo</option>
+							<option th:each="equipo : ${equipos}"
+								th:value="${equipo.idEquipo}" th:text="${equipo.nombreEquipo}">
+							</option>
+					</select></td>
+				</tr>
+				<tr>
+					<td>Equipo Visitante:</td>
+					<td><select id="equipoVisitante" name="equipo" class="select"
+						required>
+							<option value="">Selecciona un equipo</option>
+							<option th:each="equipo : ${equipos}"
+								th:value="${equipo.idEquipo}" th:text="${equipo.nombreEquipo}">
+							</option>
+					</select></td>
+				</tr>
+				<tr>
+					<td>Fecha de partido:</td>
+					<td><input type="datetime-local" id="fechaPartido"
+						name="fechaPartido" required></td>
+				</tr>
+				<tr>
+					<td>Estadio:</td>
+					<td><input type="text" name="estadio" id="estadio" required />
+					</td>
+				</tr>
+				<tr>
+					<td colspan="4">
+						<button type="submit" class="boton" value="Guardar Partido">Guardar Partido</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</form>
+	</div>
+</body>
+</html>

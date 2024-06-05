@@ -2,9 +2,9 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<title>FutbolLiga</title>
+    <title>FutbolLiga</title>
 	<link rel="stylesheet" type="text/css" th:href="@{/css/estilo.css}">
-	<link rel="shortcut icon" th:href="@{/img/imagenLogo.png}"> 
+	<link rel="shortcut icon" th:href="@{/img/imagenLogo.png}">
 </head>
 <body class ="barra">
 	<div class="barraLateral">
@@ -24,34 +24,36 @@
         </ul>
     </div>
     <div class="contenido">
-    <table border = 4 class="cuadradoGrande">
+    <table class="cuadradoGrande" border=4>
         <thead>
-        <tr>
-        	<th colspan = 5> Partidos </th>
-        </tr>
+        	<tr>
+        		<th colspan=10> Clasificación de Equipos </th>
+        	</tr>
             <tr>
-                <th>Equipo Local</th>
-                <th>Equipo Visitante</th>
-                <th>Fecha</th>
-                <th>Estadio</th>
-                <th>Acci&oacute;n</th>
+                <th>Posición</th>
+                <th>Equipo</th>
+                <th>PJ</th>
+                <th>Victorias</th>
+                <th>Empates</th>
+                <th>Derrotas</th>
+                <th>Puntos</th>
+                <th>GF</th>
+                <th>GC</th>
+                <th>Diferencia de Goles</th>
             </tr>
         </thead>
         <tbody>
-            <tr th:each="partido : ${partidos}">
-                <td th:text="${partido.equipoLocal.nombreEquipo}">Equipo Local</td>
-                <td th:text="${partido.equipoVisitante.nombreEquipo}">Equipo Visitante</td>
-                <td th:text="${#dates.format(partido.fechaPartido, 'dd/MM/yyyy HH:mm')}">Fecha</td>
-                <td th:text="${partido.estadio}">Estadio</td>
-                <td>
-                    <form th:action="@{/partidos/acta}" method="post">
-                        <input type="hidden" name="idPartido" th:value="${partido.idpartido}" />
-                        <button th:if="${usuario.tipousuario.nombreTipoUsuario == 'arbitro' and not partido.tieneDatos}" 
-                        type="submit" class="boton">Generar Acta</button>
-                        <button th:if="${partido.tieneDatos}" 
-                        type="submit" class="boton">Ver Acta</button>
-                    </form>
-                </td>
+            <tr th:each="clasificacion, iterStat : ${clasificaciones}">
+                <td th:text="${iterStat.count}"></td>
+                <td th:text="${clasificacion.equipo.nombreEquipo}"></td>
+                <td th:text="${clasificacion.partidosJugados}"></td>
+                <td th:text="${clasificacion.victorias}"></td>
+                <td th:text="${clasificacion.empates}"></td>
+                <td th:text="${clasificacion.derrotas}"></td>
+                <td th:text="${clasificacion.puntos}"></td>
+                <td th:text="${clasificacion.golesFavor}"></td>
+                <td th:text="${clasificacion.golesContra}"></td>
+                <td th:text="${clasificacion.golesFavor - clasificacion.golesContra}"></td>
             </tr>
         </tbody>
     </table>

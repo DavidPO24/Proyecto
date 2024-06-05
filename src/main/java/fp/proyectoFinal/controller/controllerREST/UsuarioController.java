@@ -3,6 +3,7 @@ package fp.proyectoFinal.controller.controllerREST;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,9 +52,16 @@ public class UsuarioController {
         return equipoRepository.findAll();
     }
 	
+	@Transactional
 	@RequestMapping("/inicio/{usuario}/{pwd}")
     public Usuario user(@PathVariable String usuario, @PathVariable String pwd){
         return usuarioRepository.iniciarSesion(usuario, pwd);
+    }
+
+	@Transactional
+	@RequestMapping("/inicio/{id}")
+    public Usuario usuario(@PathVariable int id){
+        return usuarioRepository.getReferenceById(id);
     }
 	
 	@RequestMapping("/jugador/{id}")
@@ -61,18 +69,21 @@ public class UsuarioController {
 		return jugadorRepository.buscarPorUsuario(id);
 	}
 	
+	@Transactional
 	@RequestMapping("/crear/{usuario}/{pwd}/{idTipo}")
-    public Usuario crear(@PathVariable String usuario, @PathVariable String pwd, @PathVariable int idTipo){
+    public Usuario crearUsuario(@PathVariable String usuario, @PathVariable String pwd, @PathVariable int idTipo){
         return usuarioRepository.save(new Usuario(tipoUsuarioRepository.getTipo(idTipo), usuario, pwd));
     }
 	
+	@Transactional
 	@RequestMapping("/crear/{dorsal}/{idEquipo}/{u}/{name}")
-	public Jugador crear(@PathVariable int dorsal, @PathVariable int idEquipo, @PathVariable int u, @PathVariable String name){
-		return jugadorRepository.save(new Jugador(equipoRepository.getEquipo(idEquipo), usuarioRepository.getReferenceById(u), name, dorsal));
+	public void crearJugador(@PathVariable int dorsal, @PathVariable int idEquipo, @PathVariable int u, @PathVariable String name){
+		jugadorRepository.save(new Jugador(equipoRepository.getReferenceById(idEquipo), usuarioRepository.getReferenceById(u), name, dorsal));
 	}
 	
-	@RequestMapping("/crear//{idEquipo}/{u}/{name}")
-	public Entrenador crear(@PathVariable int idEquipo, @PathVariable int u, @PathVariable String name){
-		return entrenadorRepository.save(new Entrenador(equipoRepository.getEquipo(idEquipo), usuarioRepository.getReferenceById(u), name));
+	@Transactional
+	@RequestMapping("/crearEntrenador/{idEquipo}/{u}/{name}")
+	public void crearEntrenador(@PathVariable int idEquipo, @PathVariable int u, @PathVariable String name){
+		entrenadorRepository.save(new Entrenador(equipoRepository.getReferenceById(idEquipo), usuarioRepository.getReferenceById(u), name));
 	}
 }

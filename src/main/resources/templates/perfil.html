@@ -6,9 +6,26 @@
 	<link rel="stylesheet" type="text/css" th:href="@{/css/estilo.css}">
 	<link rel="shortcut icon" th:href="@{/img/imagenLogo.png}">
 </head>
-<body>
-    <form th:action="@{/perfil/cambiar}" th:object="${jugador}" method="post">
-    <table border="0" width="35%" cellpadding="8" class="cuadrado">
+<body class ="barra">
+	<div class="barraLateral">
+		<div class="logoBarra">
+			<img class="fotoBarra" th:src="@{/img/imagenLogo.png}" />
+		</div>
+        <ul>
+            <li th:if="${usuario.tipousuario.nombreTipoUsuario == 'admin'}"><a th:href="@{/admin/equipo}">Crear Equipo</a></li>
+            <li th:if="${usuario.tipousuario.nombreTipoUsuario == 'admin'}"><a th:href="@{/admin/partido}">Crear Partidos</a></li>
+            <li th:if="${usuario.tipousuario.nombreTipoUsuario == 'admin'}"><a th:href="@{/admin/arbitro}">Crear &Aacute;rbitro</a></li>
+            <li th:if="${usuario.tipousuario.nombreTipoUsuario == 'jugador'}"><a th:href="@{/sesion}">Perfil</a></li>
+            <li th:if="${usuario.tipousuario.nombreTipoUsuario != 'admin' and usuario.tipousuario.nombreTipoUsuario != 'arbitro'}">
+            <a th:href="@{/equipo}">Equipo</a></li>
+            <li><a th:href="@{/partidos}">Lista de Partidos</a></li>
+            <li><a th:href="@{/clasificacion}">Clasificaci&oacute;n</a></li>
+            <li><a th:href="@{/logout}">Cerrar Sesi&oacute;n</a></li>
+        </ul>
+    </div>
+    <div class="contenido">
+    	<form th:action="@{/perfil/cambiar}" method="post">
+    <table border="0" width="35%" cellpadding="8" class="cuadradoBarra">
     <thead>
     	<thead>
 			<tr>
@@ -19,22 +36,24 @@
         <!-- Nombre del Jugador -->
         <tr>
             <td><label for="nombreJugador">Nombre del Jugador:</label></td>
-            <td><input type="text" id="nombreJugador" th:field="*{nombreJugador}" /><td>
+            <td><input type="text" id="nombreJugador" th:field="${jugador.nombreJugador}" /><td>
+            <td><input type="hidden" id="idJugador" name="idJugador" th:value="${jugador.idjugador}" /></td>
         </tr>
         <!-- Dorsal -->
         <tr>
             <td><label for="dorsal">Dorsal:</label></td>
-            <td><input type="number" id="dorsal" th:field="*{Dorsal}" /></td>
+            <td><input type="number" id="dorsal" th:field="${jugador.dorsal}" /></td>
         </tr>
         <!-- Nombre de Usuario (No Editable) -->
         <tr>
            <td> <label>Nombre de Usuario:</label></td>
-            <td><span th:text="*{usuario.nombre}">Nombre de Usuario</span></td>
+            <td><span th:text="${jugador.usuario.nombre}">Nombre de Usuario</span></td>
         </tr>
         <!-- Equipo (No Editable) -->
         <tr>
            <td> <label>Equipo:</label></td>
-            <td><span th:text="*{equipo.nombreEquipo}">Equipo</span></td>
+            <td><span th:text="${equipo.nombreEquipo}">Equipo</span></td>
+            <td> <input type="hidden" id="equipoId" name="equipoId" th:value="${equipo.idEquipo}" /></td>
         </tr>
         <!-- Goles (No Editable) -->
         <tr>
@@ -58,6 +77,7 @@
     </tbody>
     </table>
     </form>
+    </div>
 </body>
 </html>
 

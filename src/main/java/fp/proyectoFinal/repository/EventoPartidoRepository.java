@@ -14,4 +14,7 @@ public interface EventoPartidoRepository extends JpaRepository<EventoPartido, In
 
 	@Query("SELECT ep FROM EventoPartido ep WHERE ep.partido.idpartido = ?1")
 	List<EventoPartido> findByPartido(int id);
+
+	@Query("SELECT COUNT(ep) FROM EventoPartido ep WHERE ep.partido.idpartido = ?1 AND ep.tipoevento.idtipoEvento = 1 AND ep.jugador.equipo.idEquipo = ?2")
+	int goles(int idpartido, int idEquipo);
 }

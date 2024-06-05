@@ -6,8 +6,8 @@
 	<link rel="stylesheet" type="text/css" th:href="@{/css/estilo.css}">
 	<link rel="shortcut icon" th:href="@{/img/imagenLogo.png}"> 
 </head>
-<body class ="barra">
-	<div class="barraLateral">
+<body class="barra">
+<div class="barraLateral">
 		<div class="logoBarra">
 			<img class="fotoBarra" th:src="@{/img/imagenLogo.png}" />
 		</div>
@@ -24,34 +24,23 @@
         </ul>
     </div>
     <div class="contenido">
-    <table border = 4 class="cuadradoGrande">
+    <table border = 2 class="cuadradoBarra">
         <thead>
         <tr>
-        	<th colspan = 5> Partidos </th>
+        	<th colspan = 2 th:text="${equipo.nombreEquipo}">Nombre del equipo</th>
         </tr>
-            <tr>
-                <th>Equipo Local</th>
-                <th>Equipo Visitante</th>
-                <th>Fecha</th>
-                <th>Estadio</th>
-                <th>Acci&oacute;n</th>
-            </tr>
+        <tr>
+        	<th colspan = 2 th:text="${entrenador.nombre}">Entrenador</th>
+        </tr>
+        <tr>
+	        <th>Dorsal</th>
+	        <th>Nombre del Jugador</th>
+        </tr>
         </thead>
         <tbody>
-            <tr th:each="partido : ${partidos}">
-                <td th:text="${partido.equipoLocal.nombreEquipo}">Equipo Local</td>
-                <td th:text="${partido.equipoVisitante.nombreEquipo}">Equipo Visitante</td>
-                <td th:text="${#dates.format(partido.fechaPartido, 'dd/MM/yyyy HH:mm')}">Fecha</td>
-                <td th:text="${partido.estadio}">Estadio</td>
-                <td>
-                    <form th:action="@{/partidos/acta}" method="post">
-                        <input type="hidden" name="idPartido" th:value="${partido.idpartido}" />
-                        <button th:if="${usuario.tipousuario.nombreTipoUsuario == 'arbitro' and not partido.tieneDatos}" 
-                        type="submit" class="boton">Generar Acta</button>
-                        <button th:if="${partido.tieneDatos}" 
-                        type="submit" class="boton">Ver Acta</button>
-                    </form>
-                </td>
+            <tr th:each="jugador : ${jugadores}">
+                <td th:text="${jugador.dorsal}">Dorsal</td>
+                <td th:text="${jugador.nombreJugador}">Nombre del Jugador</td>
             </tr>
         </tbody>
     </table>

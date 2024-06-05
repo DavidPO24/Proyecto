@@ -27,8 +27,18 @@ public class Clasificacion {
 		this.golesFavor = 0;
 		this.golesContra = 0;
 	}
-	
-	
+
+	public Clasificacion(Equipo equipo, int partidosJugados, int victorias, int empates, int derrotas, int puntos,
+			int golesFavor, int golesContra) {
+		this.equipo = equipo;
+		this.partidosJugados = partidosJugados;
+		this.victorias = victorias;
+		this.empates = empates;
+		this.derrotas = derrotas;
+		this.puntos = puntos;
+		this.golesFavor = golesFavor;
+		this.golesContra = golesContra;
+	}
 
 	public Equipo getEquipo() {
 		return equipo;

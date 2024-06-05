@@ -2,17 +2,20 @@ package fp.proyectoFinal.controller.controllerWEB;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.hibernate.Hibernate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,6 +23,7 @@ import org.springframework.web.client.RestTemplate;
 
 
 import fp.proyectoFinal.model.ActaForm;
+import fp.proyectoFinal.model.Clasificacion;
 import fp.proyectoFinal.model.Entrenador;
 import fp.proyectoFinal.model.Equipo;
 import fp.proyectoFinal.model.EventoPartido;
@@ -28,9 +32,16 @@ import fp.proyectoFinal.model.Jugador;
 import fp.proyectoFinal.model.Partido;
 import fp.proyectoFinal.model.Tipoevento;
 import fp.proyectoFinal.model.Usuario;
+import fp.proyectoFinal.service.UsuarioService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Controller
 public class FutbolLigaControllerWEB{
+	
+	@Autowired
+    private UsuarioService usuarioService;
 	
 	private final String USUARIOMANAGER_STRING = "http://localhost:8080/usuario/";
 	private final String PARTIDOMANAGER_STRING = "http://localhost:8080/partido/";
@@ -38,8 +49,11 @@ public class FutbolLigaControllerWEB{
 	private final String ACTAMANAGER_STRING = "http://localhost:8080/acta/";
 	private final String TIPOEVENTOMANAGER_STRING = "http://localhost:8080/tipoEvento/";
 	private final String JUGADORMANAGER_STRING = "http://localhost:8080/jugador/";
+	private final String SESSIONMANAGER_STRING = "http://localhost:8080/session/";
+	private final String ENTRENADORMANAGER_STRING = "http://localhost:8080/entrenador/";
 	
 	private RestTemplate restTemplate = new RestTemplate();
+	private HttpHeaders headers = new HttpHeaders();
 	
     // Devuelve la vista index.html
     @GetMapping("/")
@@ -57,37 +71,107 @@ public class FutbolLigaControllerWEB{
     
     @PostMapping("/sesion")
    	public String inicioSesion(Model model, @RequestParam("usuario") String usuario, @RequestParam("pwd") String pwd) {
-    	String vuelta = "perfil";
-       	Usuario u = new Usuario();
-       	Jugador j = new Jugador();
-           u = restTemplate.getForEntity(USUARIOMANAGER_STRING + "inicio/" + usuario + "/" + pwd, Usuario.class).getBody();
-           if(u == null)
-        	   vuelta = "redirect:/";
-           else if(u.getTipousuario().getIdTipoUsuario() == 2) {
+    	Usuario u = restTemplate.getForEntity(USUARIOMANAGER_STRING + "inicio/" + usuario + "/" + pwd, Usuario.class).getBody();
+    	Jugador j = new Jugador();
+    	if (u == null) {
+           model.addAttribute("error", "Usuario o contraseña incorrectos");
+     	   return "index";
+        }
+
+           ResponseEntity<String> response = restTemplate.getForEntity(
+                   SESSIONMANAGER_STRING + "set/" + u.getIdusuario(), String.class);
+
+           // Extraer cookies de la respuesta
+           List<String> cookies = response.getHeaders().get(HttpHeaders.SET_COOKIE);
+           if (cookies != null) {
+               for (String cookie : cookies) {
+                   headers.add(HttpHeaders.COOKIE, cookie);
+               }
+           }
+           System.out.println(response.getBody());
+           model.addAttribute("usuario", u);
+           if(u.getTipousuario().getIdTipoUsuario() == 2) {
         	   j = restTemplate.getForEntity(USUARIOMANAGER_STRING + "jugador/" + u.getIdusuario(), Jugador.class).getBody();
         	   model.addAttribute("jugador", j);
+        	   model.addAttribute("equipo", j.getEquipo());
            }
-           return vuelta;
+           else if(u.getTipousuario().getIdTipoUsuario() == 3) {
+        	   
+        	   return "redirect:/equipo";
+           }   
+           else
+        	   return "redirect:/partidos";
+           
+           return "perfil";
     }
     
+    @Transactional
+    @GetMapping("/sesion")
+    public String perfil(Model model, HttpServletRequest request) {
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                SESSIONMANAGER_STRING + "get", HttpMethod.GET, requestEntity, String.class);
+
+        String responseBody = response.getBody();
+        System.out.println(responseBody);
+
+        if (responseBody == null || responseBody.equals("null")) {
+        	restTemplate.exchange(SESSIONMANAGER_STRING + "borrar", HttpMethod.GET, requestEntity, String.class);
+            return "redirect:/";
+        }
+
+        int id = Integer.parseInt(responseBody);
+        Usuario u = usuarioService.getUsuarioConAsociacionesInicializadas(id);
+
+        model.addAttribute("usuario", u);
+        restTemplate.exchange(SESSIONMANAGER_STRING + "update/" + u.getIdusuario(), HttpMethod.GET, requestEntity, String.class);
+        if (u.getTipousuario().getIdTipoUsuario() == 2) {
+            Jugador j = restTemplate.getForEntity(USUARIOMANAGER_STRING + "jugador/" + u.getIdusuario(), Jugador.class).getBody();
+            model.addAttribute("jugador", j);
+            model.addAttribute("equipo", j.getEquipo());
+        }
+
+        return "perfil";
+    }
+
+    @Transactional
     @PostMapping("/crear")
     public String crearCuenta(@RequestParam("usuario") String usuario, @RequestParam("pwd") String pwd, @RequestParam("nombre") String name,
     		@RequestParam("tipoUsuario") int idTipo, @RequestParam("equipo") int idEquipo, @RequestParam("dorsal") int dorsal) {
     	Usuario u = restTemplate.getForEntity(USUARIOMANAGER_STRING + "crear/" + usuario +
     					"/" + pwd + "/" + idTipo, Usuario.class).getBody();
+    	u = usuarioService.getUsuarioConAsociacionesInicializadas(u.getIdusuario());
     	if(u.getTipousuario().getNombreTipoUsuario().equals("jugador")) {
     		restTemplate.getForEntity(USUARIOMANAGER_STRING + "crear/" + dorsal + "/" +
     						idEquipo + "/" + u.getIdusuario() + "/" + name, Jugador.class).getBody();
     	}
     	else {
-    		restTemplate.getForEntity(USUARIOMANAGER_STRING + "crear/" + idEquipo + "/" +
-					 u + "/" + name, Entrenador.class).getBody();
+    		restTemplate.getForEntity(USUARIOMANAGER_STRING + "crearEntrenador/" + idEquipo + "/" +
+					 u.getIdusuario() + "/" + name, Entrenador.class).getBody();
     	}
     	return "redirect:/";
     }
     
     @GetMapping("/partidos")
     public String listarPartidos(Model model) {
+    	 HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+         ResponseEntity<String> response = restTemplate.exchange(
+                 SESSIONMANAGER_STRING + "get", HttpMethod.GET, requestEntity, String.class);
+
+         String responseBody = response.getBody();
+         System.out.println(responseBody);
+
+         if (responseBody == null || responseBody.equals("null")) {
+         	restTemplate.exchange(SESSIONMANAGER_STRING + "borrar", HttpMethod.GET, requestEntity, String.class);
+             return "redirect:/";
+         }
+
+         int id = Integer.parseInt(responseBody);
+         Usuario u = usuarioService.getUsuarioConAsociacionesInicializadas(id);
+
+         model.addAttribute("usuario", u);
         List<Partido> partidos = Arrays.asList(restTemplate.getForEntity(PARTIDOMANAGER_STRING + "lista", Partido[].class).getBody());
         model.addAttribute("partidos", partidos);
         return "partidos";
@@ -119,12 +203,6 @@ public class FutbolLigaControllerWEB{
         		"eventos", Tipoevento[].class).getBody()));
         return "acta";
     }
-    
-    /*@PostMapping("/partidos/acta/guardar")
-    public String guardarActa(@RequestParam("partidoId") int partidoId, @RequestParam("eventos") String eventosJson) {
-    	restTemplate.getForEntity(ACTAMANAGER_STRING + partidoId + "/" + eventosJson, null);
-    	return "redirect:/partido/lista";
-    }*/
 
     @PostMapping("/partidos/acta/guardar")
     public String guardarActa(@RequestBody ActaForm eventos) {
@@ -144,13 +222,196 @@ public class FutbolLigaControllerWEB{
     }
 
     @PostMapping("/perfil/cambiar")
-    public String cambiarPerfil(@ModelAttribute("jugador") Jugador j, Model model) {
-    	System.out.println(j);
-    	//Jugador p = estTemplate.getForEntity(JUGADORMANAGER_STRING + "modificar/" + j.getIdjugador(), Jugador.class).getBody();
-    	model.addAttribute("jugador", j);
-    	return "perfil";
+    public String cambiarPerfil(@RequestParam("idJugador") int j, @RequestParam("equipoId") int e , @RequestParam("nombreJugador") String name, 
+    		@RequestParam("dorsal") int dorsal, Model model) {
+    	Jugador p = restTemplate.getForEntity(JUGADORMANAGER_STRING + "modificar/" + j + "/" + e + "/"
+    	+ name + "/" + dorsal, Jugador.class).getBody();
+    	model.addAttribute("jugador", p);
+    	return "redirect:/sesion";
     }
 
+    @GetMapping("/clasificacion")
+    public String getClasificacion(Model model) {
+    	 HttpEntity<String> requestEntity = new HttpEntity<>(headers);
 
+         ResponseEntity<String> response = restTemplate.exchange(
+                 SESSIONMANAGER_STRING + "get", HttpMethod.GET, requestEntity, String.class);
 
+         String responseBody = response.getBody();
+         System.out.println(responseBody);
+
+         if (responseBody == null || responseBody.equals("null")) {
+         	restTemplate.exchange(SESSIONMANAGER_STRING + "borrar", HttpMethod.GET, requestEntity, String.class);
+             return "redirect:/";
+         }
+
+         int id = Integer.parseInt(responseBody);
+         Usuario u = usuarioService.getUsuarioConAsociacionesInicializadas(id);
+         model.addAttribute("usuario", u);
+    	List<Equipo> lista = new ArrayList<Equipo>();
+        lista = Arrays.asList(restTemplate.getForEntity(USUARIOMANAGER_STRING + "registro", Equipo[].class).getBody());
+        List<Clasificacion> clasificaciones = new ArrayList<Clasificacion>();
+       for(Equipo e: lista) {
+        	List<Integer> resultados = Arrays.asList(restTemplate.getForEntity(PARTIDOMANAGER_STRING + "jugados/" + e.getIdEquipo(), Integer[].class).getBody());
+        	clasificaciones.add(new Clasificacion(e, 
+        			resultados.get(0) + resultados.get(1) + resultados.get(2),
+        				resultados.get(0),
+        				resultados.get(1),
+        				resultados.get(2),
+        				3 * resultados.get(0) + resultados.get(1),
+        				resultados.get(3),
+        				resultados.get(4)
+        			));
+        }
+        //Criterios de ordenación
+        List<Clasificacion> clasificacionesOrdenadas = clasificaciones.stream()
+                .sorted(Comparator.comparingInt(Clasificacion::getPuntos).reversed()
+                        .thenComparingInt(c -> c.getGolesFavor() - c.getGolesContra()).reversed()
+                        .thenComparingInt(Clasificacion::getGolesFavor).reversed())
+                .collect(Collectors.toList());
+        model.addAttribute("clasificaciones", clasificacionesOrdenadas);
+        return "clasificacion";
+    }
+    
+    @GetMapping("/logout")
+    public String logout(HttpServletRequest request, HttpServletResponse response) {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        if (headers != null && headers.get(HttpHeaders.COOKIE) != null) {
+            httpHeaders.put(HttpHeaders.COOKIE, headers.get(HttpHeaders.COOKIE));
+        }
+        HttpEntity<String> requestEntity = new HttpEntity<>(httpHeaders);
+
+        restTemplate.exchange(SESSIONMANAGER_STRING + "borrar", HttpMethod.GET, requestEntity, String.class);
+
+        // Limpiar cookies de cliente
+        for (String cookie : headers.get(HttpHeaders.COOKIE)) {
+            Cookie clearedCookie = new Cookie(cookie.split("=")[0], null);
+            clearedCookie.setPath("/");
+            clearedCookie.setMaxAge(0);
+            response.addCookie(clearedCookie);
+        }
+        return "redirect:/";
+    }
+
+    @GetMapping("/equipo")
+    public String equipo(Model model) {
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                SESSIONMANAGER_STRING + "get", HttpMethod.GET, requestEntity, String.class);
+
+        String responseBody = response.getBody();
+        System.out.println(responseBody);
+
+        if (responseBody == null || responseBody.equals("null")) {
+        	restTemplate.exchange(SESSIONMANAGER_STRING + "borrar", HttpMethod.GET, requestEntity, String.class);
+            return "redirect:/";
+        }
+
+        int id = Integer.parseInt(responseBody);
+        Usuario u = usuarioService.getUsuarioConAsociacionesInicializadas(id);
+        Jugador j;
+        Entrenador e;
+        if(u.getTipousuario().getIdTipoUsuario() == 2) {
+        	 j = restTemplate.getForEntity(USUARIOMANAGER_STRING + "jugador/" + u.getIdusuario(), Jugador.class).getBody();
+             e = restTemplate.getForEntity(ENTRENADORMANAGER_STRING + j.getEquipo().getIdEquipo(), Entrenador.class).getBody();
+             model.addAttribute("equipo", j.getEquipo());
+             model.addAttribute("jugadores", restTemplate.getForEntity(JUGADORMANAGER_STRING + "lista/" + j.getEquipo().getIdEquipo(), Jugador[].class).getBody());
+        }
+        else {
+        	e = restTemplate.getForEntity(ENTRENADORMANAGER_STRING + "usuario/" +  u.getIdusuario(), Entrenador.class).getBody();
+        	model.addAttribute("jugadores", restTemplate.getForEntity(JUGADORMANAGER_STRING + "lista/" + e.getEquipo().getIdEquipo(), Jugador[].class).getBody());
+        	model.addAttribute("equipo", e.getEquipo());
+        }
+        model.addAttribute("usuario", u);
+        restTemplate.exchange(SESSIONMANAGER_STRING + "update/" + u.getIdusuario(), HttpMethod.GET, requestEntity, String.class);
+        model.addAttribute("entrenador", e);
+    	return "equipo";
+    }
+    
+    @PostMapping("/crear/equipo")
+    public String crearEquipo(@RequestParam("nombre") String nombre) {
+    	restTemplate.getForEntity(EQUIPOMANAGER_STRING + "crear/" + nombre, Equipo.class).getBody();
+    	return "redirect:/admin/equipo";
+    }
+    
+    @GetMapping("/admin/equipo")
+    public String nuevoEquipo(Model model) {
+    	 HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+         ResponseEntity<String> response = restTemplate.exchange(
+                 SESSIONMANAGER_STRING + "get", HttpMethod.GET, requestEntity, String.class);
+
+         String responseBody = response.getBody();
+         System.out.println(responseBody);
+
+         if (responseBody == null || responseBody.equals("null")) {
+         	restTemplate.exchange(SESSIONMANAGER_STRING + "borrar", HttpMethod.GET, requestEntity, String.class);
+             return "redirect:/";
+         }
+
+         int id = Integer.parseInt(responseBody);
+         Usuario u = usuarioService.getUsuarioConAsociacionesInicializadas(id);
+         model.addAttribute("usuario", u);
+    	return "crearEquipo";
+    }
+    
+    @GetMapping("/admin/partido")
+    public String nuevoPartido(Model model) {
+    	 HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+         ResponseEntity<String> response = restTemplate.exchange(
+                 SESSIONMANAGER_STRING + "get", HttpMethod.GET, requestEntity, String.class);
+
+         String responseBody = response.getBody();
+         System.out.println(responseBody);
+
+         if (responseBody == null || responseBody.equals("null")) {
+         	restTemplate.exchange(SESSIONMANAGER_STRING + "borrar", HttpMethod.GET, requestEntity, String.class);
+             return "redirect:/";
+         }
+
+         int id = Integer.parseInt(responseBody);
+         Usuario u = usuarioService.getUsuarioConAsociacionesInicializadas(id);
+         model.addAttribute("usuario", u);
+         List<Equipo> lista = Arrays.asList(restTemplate.getForEntity(USUARIOMANAGER_STRING + "registro", Equipo[].class).getBody());
+         model.addAttribute("equipos", lista);
+    	return "crearPartido";
+    }
+    
+    @PostMapping("/crear/partido")
+    public String crearPartido(@RequestParam("usuario") String usuario, @RequestParam("pwd") String pwd) {
+    	Usuario u = restTemplate.getForEntity(USUARIOMANAGER_STRING + "crear/" + usuario +
+				"/" + pwd + "/" + 4, Usuario.class).getBody();
+    	u = usuarioService.getUsuarioConAsociacionesInicializadas(u.getIdusuario());
+    	return "redirect:/admin/equipo";
+    }
+    
+    @GetMapping("/admin/arbitro")
+    public String nuevoArbitro(Model model) {
+    	HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                SESSIONMANAGER_STRING + "get", HttpMethod.GET, requestEntity, String.class);
+
+        String responseBody = response.getBody();
+        System.out.println(responseBody);
+
+        if (responseBody == null || responseBody.equals("null")) {
+        	restTemplate.exchange(SESSIONMANAGER_STRING + "borrar", HttpMethod.GET, requestEntity, String.class);
+            return "redirect:/";
+        }
+
+        int id = Integer.parseInt(responseBody);
+        Usuario u = usuarioService.getUsuarioConAsociacionesInicializadas(id);
+        model.addAttribute("usuario", u);
+    	return "registroArbitros";
+    }
+    @PostMapping("/crear/arbitro")
+    public String crearArbitro(@RequestParam("usuario") String usuario, @RequestParam("pwd") String pwd) {
+    	Usuario u = restTemplate.getForEntity(USUARIOMANAGER_STRING + "crear/" + usuario +
+				"/" + pwd + "/" + 4, Usuario.class).getBody();
+    	u = usuarioService.getUsuarioConAsociacionesInicializadas(u.getIdusuario());
+    	return "redirect:/admin/equipo";
+    }
 }

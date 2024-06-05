@@ -1,7 +1,9 @@
 package fp.proyectoFinal.controller.controllerREST;
 
-import org.hibernate.Hibernate;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,13 +26,18 @@ public class JugadorController{
 		this.equipoRepository = equipoRepository;
 	}
 	
-	@GetMapping("/jugador/modificar/{j}")
-	public Jugador modificarJugador(@PathVariable int j) {
+	@GetMapping("/jugador/modificar/{j}/{e}/{name}/{dorsal}")
+	@Transactional
+	public Jugador modificarJugador(@PathVariable int j, @PathVariable int e, @PathVariable String name, @PathVariable int dorsal) {
 		Jugador p = jugadorRepository.getReferenceById(j);
-		System.out.println(p);
-		p.setEquipo(equipoRepository.getReferenceById(p.getEquipo().getIdEquipo()));
-		Hibernate.initialize(p.getEquipo());
+		p.setEquipo(equipoRepository.getReferenceById(e));
+		p.setNombreJugador(name);
+		p.setDorsal(dorsal);
 		return jugadorRepository.save(p);
 	}
 	
+	@GetMapping("/jugador/lista/{id}")
+	public List<Jugador> equipo(@PathVariable int id){
+		return jugadorRepository.getJugadores(id);
+	}
 }
