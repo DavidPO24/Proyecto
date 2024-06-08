@@ -1,23 +1,27 @@
 package fp.proyectoFinal.controller.controllerWEB;
 
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
 
@@ -61,6 +65,7 @@ public class FutbolLigaControllerWEB{
         return "index";     
     }
     
+ // Devuelve la vista registro.html
     @GetMapping("/registro")
 	public String registro(Model model) {
     	List<Equipo> lista = new ArrayList<Equipo>();
@@ -69,10 +74,11 @@ public class FutbolLigaControllerWEB{
         return "registro";
     }
     
+    // Codigo de comprobación de sesión
     @PostMapping("/sesion")
    	public String inicioSesion(Model model, @RequestParam("usuario") String usuario, @RequestParam("pwd") String pwd) {
     	Usuario u = restTemplate.getForEntity(USUARIOMANAGER_STRING + "inicio/" + usuario + "/" + pwd, Usuario.class).getBody();
-    	Jugador j = new Jugador();
+		Jugador j = new Jugador();
     	if (u == null) {
            model.addAttribute("error", "Usuario o contraseña incorrectos");
      	   return "index";
@@ -94,9 +100,14 @@ public class FutbolLigaControllerWEB{
         	   j = restTemplate.getForEntity(USUARIOMANAGER_STRING + "jugador/" + u.getIdusuario(), Jugador.class).getBody();
         	   model.addAttribute("jugador", j);
         	   model.addAttribute("equipo", j.getEquipo());
+        	   model.addAttribute("goles", restTemplate.getForEntity(ACTAMANAGER_STRING 
+       				+ "/datos/" + j.getIdjugador() + "/" + 1, Integer.class).getBody());
+               model.addAttribute("tarjetasAmarillas", restTemplate.getForEntity(ACTAMANAGER_STRING 
+       				+ "/datos/" + j.getIdjugador() + "/" + 2, Integer.class).getBody());
+               model.addAttribute("tarjetasRojas", restTemplate.getForEntity(ACTAMANAGER_STRING 
+       				+ "/datos/" + j.getIdjugador() + "/" + 3, Integer.class).getBody());
            }
            else if(u.getTipousuario().getIdTipoUsuario() == 3) {
-        	   
         	   return "redirect:/equipo";
            }   
            else
@@ -105,6 +116,7 @@ public class FutbolLigaControllerWEB{
            return "perfil";
     }
     
+ // Devuelve la vista principal de cada tipo de usuario, si no está iniciada una sesión devuelve a index
     @Transactional
     @GetMapping("/sesion")
     public String perfil(Model model, HttpServletRequest request) {
@@ -130,15 +142,32 @@ public class FutbolLigaControllerWEB{
             Jugador j = restTemplate.getForEntity(USUARIOMANAGER_STRING + "jugador/" + u.getIdusuario(), Jugador.class).getBody();
             model.addAttribute("jugador", j);
             model.addAttribute("equipo", j.getEquipo());
+            model.addAttribute("goles", restTemplate.getForEntity(ACTAMANAGER_STRING 
+    				+ "/datos/" + j.getIdjugador() + "/" + 1, Integer.class).getBody());
+            model.addAttribute("tarjetasAmarillas", restTemplate.getForEntity(ACTAMANAGER_STRING 
+    				+ "/datos/" + j.getIdjugador() + "/" + 2, Integer.class).getBody());
+            model.addAttribute("tarjetasRojas", restTemplate.getForEntity(ACTAMANAGER_STRING 
+    				+ "/datos/" + j.getIdjugador() + "/" + 3, Integer.class).getBody());
         }
-
+        else if(u.getTipousuario().getIdTipoUsuario() == 3) {
+     	   return "redirect:/equipo";
+        }   
+        else
+     	   return "redirect:/partidos";
+        
         return "perfil";
     }
 
+    //Codigo para crear la cuenta
     @Transactional
     @PostMapping("/crear")
-    public String crearCuenta(@RequestParam("usuario") String usuario, @RequestParam("pwd") String pwd, @RequestParam("nombre") String name,
+    public String crearCuenta(Model model, @RequestParam("usuario") String usuario, @RequestParam("pwd") String pwd, @RequestParam("nombre") String name,
     		@RequestParam("tipoUsuario") int idTipo, @RequestParam("equipo") int idEquipo, @RequestParam("dorsal") int dorsal) {
+    	Usuario e = restTemplate.getForEntity(USUARIOMANAGER_STRING + "buscar/" + usuario, Usuario.class).getBody();
+    	if(e != null) {
+    		model.addAttribute("error", "Ya existe usuario con ese nombre");
+      	   	return "registro";
+    	}
     	Usuario u = restTemplate.getForEntity(USUARIOMANAGER_STRING + "crear/" + usuario +
     					"/" + pwd + "/" + idTipo, Usuario.class).getBody();
     	u = usuarioService.getUsuarioConAsociacionesInicializadas(u.getIdusuario());
@@ -153,6 +182,7 @@ public class FutbolLigaControllerWEB{
     	return "redirect:/";
     }
     
+    //Pagina html partidos
     @GetMapping("/partidos")
     public String listarPartidos(Model model) {
     	 HttpEntity<String> requestEntity = new HttpEntity<>(headers);
@@ -177,13 +207,12 @@ public class FutbolLigaControllerWEB{
         return "partidos";
     }
     
+    //Rellena los datos necesarios para hacer funcionar la pagina acta.html
     @PostMapping("/partidos/acta")
     public String actasArbitrales(@RequestParam("idPartido") int id, Model model) {
     	Partido p = restTemplate.getForEntity(PARTIDOMANAGER_STRING +
         		id, Partido.class).getBody();
     	List<Equipo> es = new ArrayList<Equipo>();
-    	System.out.println("PARECE QUE EL PARTIDO CONTIENE: ");
-    	System.out.println(p);
     	 model.addAttribute("partido", p);
     	if(p.getTieneDatos()) {
     		model.addAttribute("eventos", Arrays.asList(restTemplate.getForEntity(ACTAMANAGER_STRING 
@@ -204,6 +233,7 @@ public class FutbolLigaControllerWEB{
         return "acta";
     }
 
+    //Guarda el acta arbitral en BBDD
     @PostMapping("/partidos/acta/guardar")
     public String guardarActa(@RequestBody ActaForm eventos) {
         System.out.println("EL PARTIDOID ES: " + eventos.getPartidoId());
@@ -221,15 +251,17 @@ public class FutbolLigaControllerWEB{
         return "redirect:/partidos";
     }
 
+    //Cambia los datos del perfil
+    @Transactional
     @PostMapping("/perfil/cambiar")
     public String cambiarPerfil(@RequestParam("idJugador") int j, @RequestParam("equipoId") int e , @RequestParam("nombreJugador") String name, 
     		@RequestParam("dorsal") int dorsal, Model model) {
-    	Jugador p = restTemplate.getForEntity(JUGADORMANAGER_STRING + "modificar/" + j + "/" + e + "/"
+    	restTemplate.getForEntity(JUGADORMANAGER_STRING + "modificar/" + j + "/" + e + "/"
     	+ name + "/" + dorsal, Jugador.class).getBody();
-    	model.addAttribute("jugador", p);
     	return "redirect:/sesion";
     }
 
+    //Enseña la tabla de clasificación
     @GetMapping("/clasificacion")
     public String getClasificacion(Model model) {
     	 HttpEntity<String> requestEntity = new HttpEntity<>(headers);
@@ -273,6 +305,7 @@ public class FutbolLigaControllerWEB{
         return "clasificacion";
     }
     
+    //Borra la sesión almacenada y vuelve a index.html
     @GetMapping("/logout")
     public String logout(HttpServletRequest request, HttpServletResponse response) {
         HttpHeaders httpHeaders = new HttpHeaders();
@@ -293,6 +326,7 @@ public class FutbolLigaControllerWEB{
         return "redirect:/";
     }
 
+    //Pagina equipo, cargando los datos desde BBDD
     @GetMapping("/equipo")
     public String equipo(Model model) {
         HttpEntity<String> requestEntity = new HttpEntity<>(headers);
@@ -380,10 +414,10 @@ public class FutbolLigaControllerWEB{
     }
     
     @PostMapping("/crear/partido")
-    public String crearPartido(@RequestParam("usuario") String usuario, @RequestParam("pwd") String pwd) {
-    	Usuario u = restTemplate.getForEntity(USUARIOMANAGER_STRING + "crear/" + usuario +
-				"/" + pwd + "/" + 4, Usuario.class).getBody();
-    	u = usuarioService.getUsuarioConAsociacionesInicializadas(u.getIdusuario());
+    public String crearPartido(@RequestParam("jornada") int j, @RequestParam("estadio") String estadio, @RequestParam("fechaPartido") String fecha, @RequestParam("equipoLocal") int idEquipoLocal, 
+    		@RequestParam("equipoVisitante") int idEquipoVisitante) {
+    	restTemplate.getForEntity(PARTIDOMANAGER_STRING + "crear/" + idEquipoLocal + "/" + idEquipoVisitante + "/" + fecha +
+				"/" + estadio + "/" + j, Partido.class).getBody();
     	return "redirect:/admin/equipo";
     }
     
@@ -413,5 +447,26 @@ public class FutbolLigaControllerWEB{
 				"/" + pwd + "/" + 4, Usuario.class).getBody();
     	u = usuarioService.getUsuarioConAsociacionesInicializadas(u.getIdusuario());
     	return "redirect:/admin/equipo";
+    }
+    
+    //Manejo personalizado de errores en la aplicación, en este caso te echa de tu sesión y devuelve a index.html
+    @RequestMapping("/error")
+    public String error(HttpServletRequest request, HttpServletResponse response) {
+    	 HttpHeaders httpHeaders = new HttpHeaders();
+         if (headers != null && headers.get(HttpHeaders.COOKIE) != null) {
+             httpHeaders.put(HttpHeaders.COOKIE, headers.get(HttpHeaders.COOKIE));
+         }
+         HttpEntity<String> requestEntity = new HttpEntity<>(httpHeaders);
+
+         restTemplate.exchange(SESSIONMANAGER_STRING + "borrar", HttpMethod.GET, requestEntity, String.class);
+
+         // Limpiar cookies de cliente
+         for (String cookie : headers.get(HttpHeaders.COOKIE)) {
+             Cookie clearedCookie = new Cookie(cookie.split("=")[0], null);
+             clearedCookie.setPath("/");
+             clearedCookie.setMaxAge(0);
+             response.addCookie(clearedCookie);
+         }
+    	return "redirect:/";
     }
 }

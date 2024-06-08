@@ -36,10 +36,7 @@ public class ActaController {
 
     @PostMapping("/acta/guardar/{id}")
     public void guardarActa(@PathVariable("id") int partidoId, @RequestBody List<EventosForm> eventos) {
-        System.out.println("ESTAMOS EN GUARDARACTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA \n");
-        System.out.println("EL PARTIDOID tras la transformacion ES: " + partidoId);
         Partido partido = partidoRepository.getPartido(partidoId);
-        System.out.println("EL NUMERO DE EVENTOS ES: " + eventos.size());
         EventoPartido ep;
         for (EventosForm evento : eventos) {
             Jugador j = jugadorRepository.getJugador(evento.getIdJugador());
@@ -53,5 +50,9 @@ public class ActaController {
     public List<EventoPartido> getEventos(@PathVariable("id") int partidoId){
     	return eventoPartidoRepository.findByPartido(partidoId);
     }
-
+    
+    @GetMapping("/acta/datos/{id}/{tipo}")
+    public int getNumDatos(@PathVariable("id") int idJugador, @PathVariable("tipo") int tipoDato){
+    	return eventoPartidoRepository.findDatos(idJugador, tipoDato);
+    }
 }

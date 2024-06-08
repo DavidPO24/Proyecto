@@ -30,7 +30,7 @@
         	<th colspan = 2 th:text="${equipo.nombreEquipo}">Nombre del equipo</th>
         </tr>
         <tr>
-        	<th colspan = 2 th:text="${entrenador.nombre}">Entrenador</th>
+        	<th colspan="2" th:text="${entrenador != null ? entrenador.nombre : 'Sin entrenador'}">Entrenador</th>
         </tr>
         <tr>
 	        <th>Dorsal</th>

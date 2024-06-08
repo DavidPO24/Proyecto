@@ -1,6 +1,6 @@
 package fp.proyectoFinal.model;
 
-import java.sql.Date;
+import java.util.Date;
 
 
 import jakarta.persistence.Column;
@@ -46,7 +46,19 @@ public class Partido  implements java.io.Serializable {
     }
 
 	
-    @Override
+    public Partido(int jornada, Equipo equipoLocal, Equipo equipoVisitante, Date date, String estadio) {
+		super();
+		this.jornada = jornada;
+		this.equipoLocal = equipoLocal;
+		this.equipoVisitante = equipoVisitante;
+		this.fechaPartido = date;
+		this.estadio = estadio;
+	}
+
+
+
+
+	@Override
 	public String toString() {
 		return "Partido [idpartido=" + idpartido + ", jornada=" + jornada + ", equipoLocal=" + equipoLocal
 				+ ", equipoVisitante=" + equipoVisitante + ", fechaPartido=" + fechaPartido + ", estadio=" + estadio

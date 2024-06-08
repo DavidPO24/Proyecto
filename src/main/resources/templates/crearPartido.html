@@ -32,6 +32,11 @@
 				</tr>
 			</thead>
 			<tbody>
+			<tr>
+				<td>Jornada:</td>
+					<td><input type="number" id="jornada" name="jornada" min="1"
+						max="26" value="1"></td>
+				</tr>
 				<tr>
 					<td>Equipo Local:</td>
 					<td><select id="equipoLocal" name="equipoLocal" class="select"
@@ -44,7 +49,7 @@
 				</tr>
 				<tr>
 					<td>Equipo Visitante:</td>
-					<td><select id="equipoVisitante" name="equipo" class="select"
+					<td><select id="equipoVisitante" name="equipoVisitante" class="select"
 						required>
 							<option value="">Selecciona un equipo</option>
 							<option th:each="equipo : ${equipos}"

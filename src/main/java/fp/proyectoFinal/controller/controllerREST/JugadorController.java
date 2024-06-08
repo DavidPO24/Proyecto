@@ -28,12 +28,12 @@ public class JugadorController{
 	
 	@GetMapping("/jugador/modificar/{j}/{e}/{name}/{dorsal}")
 	@Transactional
-	public Jugador modificarJugador(@PathVariable int j, @PathVariable int e, @PathVariable String name, @PathVariable int dorsal) {
+	public void modificarJugador(@PathVariable int j, @PathVariable int e, @PathVariable String name, @PathVariable int dorsal) {
 		Jugador p = jugadorRepository.getReferenceById(j);
 		p.setEquipo(equipoRepository.getReferenceById(e));
 		p.setNombreJugador(name);
 		p.setDorsal(dorsal);
-		return jugadorRepository.save(p);
+		jugadorRepository.save(p);
 	}
 	
 	@GetMapping("/jugador/lista/{id}")

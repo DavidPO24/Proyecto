@@ -69,6 +69,11 @@ public class UsuarioController {
 		return jugadorRepository.buscarPorUsuario(id);
 	}
 	
+	@RequestMapping("/buscar/{nombre}")
+	public Usuario user(@PathVariable String nombre) {
+		return usuarioRepository.buscarPorNombre(nombre);
+	}
+	
 	@Transactional
 	@RequestMapping("/crear/{usuario}/{pwd}/{idTipo}")
     public Usuario crearUsuario(@PathVariable String usuario, @PathVariable String pwd, @PathVariable int idTipo){

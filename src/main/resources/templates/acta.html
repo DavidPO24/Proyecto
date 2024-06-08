@@ -79,20 +79,7 @@
 
             const table = document.getElementById('eventListTable').getElementsByTagName('tbody')[0];
             const rows = table.rows;
-            //const eventos = [];
-            /*for (let i = 0; i < rows.length; i++) {
-                const cells = rows[i].cells;
-                const jugador = jugadorId.value;
-                const tipoEvento = cells[1].textContent;
-                const momentoEvento = cells[2].textContent;
-
-                eventos.push({
-                    idJugador: jugador,
-                    idtipoEvento: tipoEvento,
-                    momentoEvento: momentoEvento
-                });
-            }*/
-
+            
             const data = {
                 partidoId: partidoId,
                 eventos: eventos
@@ -112,8 +99,16 @@
     </script>
 </head>
 <body>
-    <h1>Acta del Partido</h1>
     <form id="actaForm" th:action="@{/partidos/acta/guardar}" method="post" class="cuadrado">
+    <table>
+	    <thead>
+	    	
+	    </thead>
+	    <tbody>
+	    	
+	    </tbody>
+    </table>
+    <h1>Acta del Partido</h1>
         <input type="hidden" id="partidoId" name="partidoId" th:value="${partido.idpartido}" />
         <input type="hidden" id="equipoLocalId" name="equipoLocalId" th:value="${partido.equipoLocal.idEquipo}" />
         <div>
@@ -156,6 +151,7 @@
             <input type="number" id="momentoEvento" name="momentoEvento" min="1" max="90">
         </div>
         
+        <a href="/partidos">Volver a la lista de partidos</a>
         <button type="button" onclick="addEventToList()" class="boton">Añadir Evento</button>
         <button id="entregar" type="button" onclick="submitForm()" class="oculto">Guardar Acta</button>
         

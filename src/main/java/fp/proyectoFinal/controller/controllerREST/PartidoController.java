@@ -1,5 +1,9 @@
 package fp.proyectoFinal.controller.controllerREST;
 
+import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 
@@ -10,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import fp.proyectoFinal.model.Partido;
+import fp.proyectoFinal.repository.EquipoRepository;
 import fp.proyectoFinal.repository.EventoPartidoRepository;
 import fp.proyectoFinal.repository.PartidoRepository;
 
@@ -23,9 +28,13 @@ public class PartidoController {
 	@Autowired
 	private final EventoPartidoRepository eventoPartidoRepository;
 	
-	public PartidoController(PartidoRepository pR, EventoPartidoRepository epR) {
+	@Autowired
+	private final EquipoRepository equipoRepository;
+	
+	public PartidoController(PartidoRepository pR, EventoPartidoRepository epR, EquipoRepository equipoRepository) {
 		this.partidoRepository = pR;
 		this.eventoPartidoRepository = epR;
+		this.equipoRepository = equipoRepository;
 	}
 	
 	@GetMapping("/lista")
@@ -86,5 +95,18 @@ public class PartidoController {
                 });
 
         return Arrays.asList(jugados[0], jugados[1], jugados[2], jugados[3], jugados[4]);
+	}
+	
+	@GetMapping("/crear/{idEquipoLocal}/{idEquipoVisitante}/{fecha}/{estadio}/{j}")
+	public void crearPartido(@PathVariable("idEquipoLocal") int idL, @PathVariable("idEquipoVisitante") int idV, @PathVariable("fecha") String fecha,
+			@PathVariable("estadio") String estadio, @PathVariable("j") int j) {
+		
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+
+        LocalDateTime localDateTime = LocalDateTime.parse(fecha, format);
+
+        Date date = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+        
+		partidoRepository.save(new Partido(j, equipoRepository.getReferenceById(idL), equipoRepository.getReferenceById(idV), date, estadio));
 	}
 }
