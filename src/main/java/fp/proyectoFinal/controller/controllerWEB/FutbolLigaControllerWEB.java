@@ -352,10 +352,13 @@ public class FutbolLigaControllerWEB{
              model.addAttribute("equipo", j.getEquipo());
              model.addAttribute("jugadores", restTemplate.getForEntity(JUGADORMANAGER_STRING + "lista/" + j.getEquipo().getIdEquipo(), Jugador[].class).getBody());
         }
-        else {
+        else if(u.getTipousuario().getIdTipoUsuario() == 3){
         	e = restTemplate.getForEntity(ENTRENADORMANAGER_STRING + "usuario/" +  u.getIdusuario(), Entrenador.class).getBody();
         	model.addAttribute("jugadores", restTemplate.getForEntity(JUGADORMANAGER_STRING + "lista/" + e.getEquipo().getIdEquipo(), Jugador[].class).getBody());
         	model.addAttribute("equipo", e.getEquipo());
+        }
+        else {
+        	return "redirect:/sesion";
         }
         model.addAttribute("usuario", u);
         restTemplate.exchange(SESSIONMANAGER_STRING + "update/" + u.getIdusuario(), HttpMethod.GET, requestEntity, String.class);
@@ -386,6 +389,8 @@ public class FutbolLigaControllerWEB{
 
          int id = Integer.parseInt(responseBody);
          Usuario u = usuarioService.getUsuarioConAsociacionesInicializadas(id);
+         if(u.getTipousuario().getIdTipoUsuario() != 1)
+        	 return "redirect:/sesion";
          model.addAttribute("usuario", u);
     	return "crearEquipo";
     }
@@ -407,6 +412,8 @@ public class FutbolLigaControllerWEB{
 
          int id = Integer.parseInt(responseBody);
          Usuario u = usuarioService.getUsuarioConAsociacionesInicializadas(id);
+         if(u.getTipousuario().getIdTipoUsuario() != 1)
+        	 return "redirect:/sesion";
          model.addAttribute("usuario", u);
          List<Equipo> lista = Arrays.asList(restTemplate.getForEntity(USUARIOMANAGER_STRING + "registro", Equipo[].class).getBody());
          model.addAttribute("equipos", lista);
@@ -438,6 +445,8 @@ public class FutbolLigaControllerWEB{
 
         int id = Integer.parseInt(responseBody);
         Usuario u = usuarioService.getUsuarioConAsociacionesInicializadas(id);
+        if(u.getTipousuario().getIdTipoUsuario() != 1)
+       	 return "redirect:/sesion";
         model.addAttribute("usuario", u);
     	return "registroArbitros";
     }
